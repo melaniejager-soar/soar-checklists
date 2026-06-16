@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOAR Week 4 Checklist</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f5f5f5; min-height: 100vh; }
+
+  #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .auth-box { background: #fff; border-radius: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.10); padding: 36px 32px; width: 100%; max-width: 420px; }
+  .auth-box h2 { text-align: center; color: #1f3d3a; font-size: 24px; margin-bottom: 6px; }
+  .auth-box .auth-subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 28px; }
+  .auth-tabs { display: flex; border-bottom: 2px solid #e8e8e8; margin-bottom: 24px; }
+  .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 15px; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .auth-tab.active { color: #1f3d3a; font-weight: bold; border-bottom-color: #1f3d3a; }
+  .auth-form { display: flex; flex-direction: column; gap: 14px; }
+  .auth-form input { padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .auth-form input:focus { border-color: #1f3d3a; }
+  .auth-btn { background: #1f3d3a; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
+  .auth-btn:hover { background: #2d5550; }
+  .auth-message { text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; color: #c0392b; }
+  .auth-message.success { color: #1f3d3a; }
+
+  #checklist-screen { display: none; padding: 24px; }
+  .checklist-header { display: flex; justify-content: space-between; align-items: center; max-width: 850px; margin: 0 auto 16px; font-size: 13px; color: #666; }
+  .signout-btn { background: none; border: 1px solid #ccc; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; color: #555; transition: all 0.2s; }
+  .signout-btn:hover { border-color: #1f3d3a; color: #1f3d3a; }
+
+  #soar-week4-checklist { font-family: Arial, sans-serif; max-width: 850px; margin: auto; padding: 24px; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); color: #1f1f1f; }
+  #soar-week4-checklist h2 { text-align: center; font-size: 30px; margin-bottom: 8px; letter-spacing: 1px; }
+  .subtitle { text-align: center; font-size: 15px; margin-bottom: 8px; color: #666; }
+  .week-note { font-size: 13px; color: #888; font-style: italic; margin-bottom: 24px; padding: 10px 16px; background: #f9f9f9; border-radius: 8px; border-left: 3px solid #1f3d3a; }
+
+  .progress-wrapper { background: #e8e8e8; border-radius: 30px; overflow: hidden; height: 24px; margin-bottom: 10px; }
+  .progress-bar { height: 100%; width: 0%; background: #1f3d3a; color: white; text-align: center; line-height: 24px; font-size: 13px; transition: width 0.3s ease; }
+  .progress-text { text-align: center; font-size: 14px; margin-bottom: 24px; color: #444; }
+
+  .task { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eeeeee; font-size: 16px; line-height: 1.45; }
+  .task input { margin-top: 4px; transform: scale(1.25); cursor: pointer; }
+  .task.completed label { text-decoration: line-through; color: #777; }
+  .completed-badge { display: none; margin-left: 8px; font-size: 12px; color: #1f3d3a; font-weight: bold; }
+  .task.completed .completed-badge { display: inline; }
+  .saving-indicator { text-align: center; font-size: 12px; color: #999; margin-top: 16px; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>S.O.A.R.</h2>
+    <p class="auth-subtitle">Week 4 Checklist — Sign in to track your progress</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="showTab('signin')">Sign In</div>
+      <div class="auth-tab" onclick="showTab('signup')">Create Account</div>
+    </div>
+    <div id="signin-form" class="auth-form">
+      <input type="email" id="signin-email" placeholder="Email address" />
+      <input type="password" id="signin-password" placeholder="Password" />
+      <button class="auth-btn" onclick="signIn()">Sign In</button>
+      <div class="auth-message" id="signin-msg"></div>
+    </div>
+    <div id="signup-form" class="auth-form" style="display:none;">
+      <input type="text" id="signup-name" placeholder="Your full name" />
+      <input type="email" id="signup-email" placeholder="Email address" />
+      <input type="password" id="signup-password" placeholder="Create a password (min 6 chars)" />
+      <button class="auth-btn" onclick="signUp()">Create Account</button>
+      <div class="auth-message" id="signup-msg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="checklist-screen">
+  <div class="checklist-header">
+    <div>👋 Welcome, <span id="user-email-display"></span></div>
+    <button class="signout-btn" onclick="signOut()">Sign Out</button>
+  </div>
+
+  <div id="soar-week4-checklist">
+    <h2>SOAR Week 4 Checklist</h2>
+    <div class="subtitle">Take action, build relationships, and begin developing habits that drive long-term production.</div>
+    <div class="week-note">📌 If your open house hasn't happened yet, this is your event week — you've got this! If it already took place during Week 3, jump to the follow-up steps and keep building momentum.</div>
+
+    <div class="progress-wrapper">
+      <div class="progress-bar" id="progressBar">0%</div>
+    </div>
+    <div class="progress-text" id="progressText">0 of 12 tasks completed</div>
+
+    <div class="task"><input type="checkbox" id="week4task1"><label for="week4task1">Continue advertising your open house event leading up to the event.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task2"><label for="week4task2">Contact a mortgage lender and ask them to host the open house with you or provide home loan information flyers for buyers attending the event.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task3"><label for="week4task3">Place your open house directional signs out two days prior to the event. While placing signs, introduce yourself to nearby neighbors and invite them to attend.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task4"><label for="week4task4">Arrive at your open house at least one hour early. Turn on lights, open blinds and drapes, set out water, cookies, paper towels, a sign-in sheet, and business cards. Have a chair available if needed. Most importantly, have fun!<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task5"><label for="week4task5">After the open house, follow up with the sellers or listing agent and implement the post-event strategies found in the 7-Day Virtual Open House System™ guide.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task6"><label for="week4task6">Attend the Wednesday Level Up Meeting online. Email theagentconnection.agentsupport@gmail.com if you need the meeting link.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task7"><label for="week4task7">Register for and attend, in-person or virtually, The BIG REveal lunch and learn presented by Sean Jager. Invite another agent to attend with you. <strong>(Eventbrite button below)</strong><span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task8"><label for="week4task8">Set up your Agent Referral Program: my.exprealty.com → Tools → eXp Agent-to-Agent Referrals → Start Now.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task9"><label for="week4task9">Watch The Model Explained videos. <strong>(button below)</strong><span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task10"><label for="week4task10">Watch The 60 Touch Blueprint video for boosting production. <strong>(button below)</strong><span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task11"><label for="week4task11">Reach back out to the mortgage lender you connected with about your open house and invite them to lunch or coffee. Lenders are often a valuable source of future referrals and relationships.<span class="completed-badge"> ✓ Done</span></label></div>
+    <div class="task"><input type="checkbox" id="week4task12"><label for="week4task12">Use the Accountability Email to share a final progress update and celebrate completing SOAR! <strong>(button below)</strong><span class="completed-badge"> ✓ Done</span></label></div>
+
+    <div class="saving-indicator" id="savingIndicator"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://ctcrkjikdudaioyasohq.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0Y3JramlrZHVkYWlveWFzb2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzM3MTEsImV4cCI6MjA5NzIwOTcxMX0.62OUsz_EuGFZBXdCZrBuH2Flv67g4rQdAn34eGj0d78";
+  const WEEK = "week4";
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let currentUser = null;
+
+  function showTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'signin') || (i === 1 && tab === 'signup'));
+    });
+    document.getElementById('signin-form').style.display = tab === 'signin' ? 'flex' : 'none';
+    document.getElementById('signup-form').style.display = tab === 'signup' ? 'flex' : 'none';
+  }
+
+  async function signUp() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const msg = document.getElementById('signup-msg');
+    if (!name || !email || !password) { msg.textContent = 'Please fill in all fields.'; return; }
+    msg.textContent = 'Creating your account...';
+    msg.className = 'auth-message';
+    const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+    if (error) { msg.textContent = error.message; }
+    else { msg.className = 'auth-message success'; msg.textContent = 'Account created! Check your email to confirm, then sign in.'; }
+  }
+
+  async function signIn() {
+    const email = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
+    const msg = document.getElementById('signin-msg');
+    if (!email || !password) { msg.textContent = 'Please enter your email and password.'; return; }
+    msg.textContent = 'Signing in...';
+    msg.className = 'auth-message';
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { msg.textContent = error.message; }
+    else { loadChecklist(data.user); }
+  }
+
+  async function signOut() {
+    await sb.auth.signOut();
+    currentUser = null;
+    document.getElementById('checklist-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('signin-msg').textContent = '';
+    document.getElementById('signin-email').value = '';
+    document.getElementById('signin-password').value = '';
+  }
+
+  async function loadChecklist(user) {
+    currentUser = user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('checklist-screen').style.display = 'block';
+    document.getElementById('user-email-display').textContent = user.user_metadata?.full_name || user.email;
+
+    const { data } = await sb.from('checklist_progress').select('task_id, completed').eq('user_id', user.id).eq('week', WEEK);
+    const saved = {};
+    if (data) data.forEach(row => { saved[row.task_id] = row.completed; });
+
+    const checkboxes = document.querySelectorAll('#soar-week4-checklist input[type="checkbox"]');
+    checkboxes.forEach(box => {
+      if (saved[box.id] === true) { box.checked = true; box.closest('.task').classList.add('completed'); }
+      box.addEventListener('change', () => saveProgress(box, user.id));
+    });
+    updateProgress();
+  }
+
+  async function saveProgress(box, userId) {
+    const task = box.closest('.task');
+    if (box.checked) task.classList.add('completed'); else task.classList.remove('completed');
+    updateProgress();
+    showSaving('Saving...');
+    const { error } = await sb.from('checklist_progress').upsert({ user_id: userId, week: WEEK, task_id: box.id, completed: box.checked, updated_at: new Date().toISOString() }, { onConflict: 'user_id,week,task_id' });
+    showSaving(error ? '⚠️ Could not save. Check your connection.' : '✓ Progress saved', !error);
+    setTimeout(() => showSaving(''), 2000);
+  }
+
+  function showSaving(msg, success = false) {
+    const el = document.getElementById('savingIndicator');
+    el.textContent = msg;
+    el.style.color = success ? '#1f3d3a' : '#999';
+  }
+
+  function updateProgress() {
+    const checkboxes = document.querySelectorAll('#soar-week4-checklist input[type="checkbox"]');
+    let completed = 0;
+    checkboxes.forEach(box => { if (box.checked) completed++; });
+    const total = checkboxes.length;
+    const percent = Math.round((completed / total) * 100);
+    document.getElementById('progressBar').style.width = percent + '%';
+    document.getElementById('progressBar').textContent = percent + '%';
+    document.getElementById('progressText').textContent = completed + ' of ' + total + ' tasks completed';
+  }
+
+  sb.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadChecklist(session.user); });
+</script>
+</body>
+</html>
