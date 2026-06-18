@@ -16,7 +16,6 @@
     justify-content: center;
     padding: 24px;
   }
-
   .box {
     background: #fff;
     border-radius: 16px;
@@ -26,18 +25,12 @@
     max-width: 440px;
     text-align: center;
   }
-
   .logo { font-size: 28px; font-weight: bold; color: #1f3d3a; margin-bottom: 4px; }
   .tagline { font-size: 13px; color: #888; margin-bottom: 28px; }
-
   .icon { font-size: 48px; margin-bottom: 16px; }
-
   h2 { font-size: 22px; color: #1f3d3a; margin-bottom: 10px; }
-
   p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 20px; }
-
   .form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 8px; }
-
   input {
     padding: 12px 14px;
     border: 1px solid #ddd;
@@ -48,7 +41,6 @@
     text-align: left;
   }
   input:focus { border-color: #1f3d3a; }
-
   .btn {
     background: #1f3d3a;
     color: #fff;
@@ -62,7 +54,6 @@
     width: 100%;
   }
   .btn:hover { background: #2d5550; }
-
   .btn-outline {
     background: none;
     color: #1f3d3a;
@@ -78,21 +69,9 @@
     display: block;
   }
   .btn-outline:hover { background: #1f3d3a; color: #fff; }
-
-  .message {
-    font-size: 13px;
-    margin-top: 8px;
-    min-height: 20px;
-    color: #c0392b;
-  }
+  .message { font-size: 13px; margin-top: 8px; min-height: 20px; color: #c0392b; }
   .message.success { color: #1f3d3a; }
-
-  .divider {
-    border: none;
-    border-top: 1px solid #eee;
-    margin: 20px 0;
-  }
-
+  .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
   .spinner {
     display: inline-block;
     width: 32px;
@@ -107,17 +86,13 @@
 </style>
 </head>
 <body>
-
 <div class="box" id="main-box">
-  <!-- Loading state shown while we detect what type of redirect this is -->
   <div id="loading-state">
     <div class="logo">SOAR</div>
     <div class="tagline">Moving eXp Agents from Onboarding to Production</div>
     <div class="spinner"></div>
     <p>Getting things ready for you...</p>
   </div>
-
-  <!-- Email confirmed state -->
   <div id="confirmed-state" style="display:none;">
     <div class="icon">✅</div>
     <div class="logo">SOAR</div>
@@ -126,8 +101,6 @@
     <p>Your account is all set. Click below to go to your Week 1 checklist and get started with SOAR!</p>
     <a href="https://melaniejager-soar.github.io/soar-checklists/soar-week1.html" class="btn">Go to Week 1 Checklist →</a>
   </div>
-
-  <!-- Password reset state -->
   <div id="reset-state" style="display:none;">
     <div class="icon">🔒</div>
     <div class="logo">SOAR</div>
@@ -141,8 +114,6 @@
       <div class="message" id="reset-message"></div>
     </div>
   </div>
-
-  <!-- Password reset success state -->
   <div id="reset-success-state" style="display:none;">
     <div class="icon">🎉</div>
     <div class="logo">SOAR</div>
@@ -151,8 +122,6 @@
     <p>Your password has been reset successfully. Click below to sign in and continue with your SOAR checklists.</p>
     <a href="https://melaniejager-soar.github.io/soar-checklists/soar-week1.html" class="btn">Go to Week 1 Checklist →</a>
   </div>
-
-  <!-- Error / fallback state -->
   <div id="error-state" style="display:none;">
     <div class="icon">🌿</div>
     <div class="logo">SOAR</div>
@@ -164,89 +133,44 @@
     <p style="font-size:12px; color:#999;">Need help? Contact The AGENT Connection™ for support.</p>
   </div>
 </div>
-
 <script>
   const SUPABASE_URL = "https://ctcrkjikdudaioyasohq.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0Y3JramlrZHVkYWlveWFzb2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzM3MTEsImV4cCI6MjA5NzIwOTcxMX0.62OUsz_EuGFZBXdCZrBuH2Flv67g4rQdAn34eGj0d78";
-
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   function show(id) {
-    ['loading-state', 'confirmed-state', 'reset-state', 'reset-success-state', 'error-state'].forEach(s => {
+    ['loading-state','confirmed-state','reset-state','reset-success-state','error-state'].forEach(s => {
       document.getElementById(s).style.display = s === id ? 'block' : 'none';
     });
   }
-
   async function resetPassword() {
     const newPassword = document.getElementById('new-password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
     const msg = document.getElementById('reset-message');
-
-    if (!newPassword || !confirmPassword) {
-      msg.textContent = 'Please fill in both fields.';
-      msg.className = 'message';
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      msg.textContent = 'Passwords do not match. Please try again.';
-      msg.className = 'message';
-      return;
-    }
-    if (newPassword.length < 6) {
-      msg.textContent = 'Password must be at least 6 characters.';
-      msg.className = 'message';
-      return;
-    }
-
+    if (!newPassword || !confirmPassword) { msg.textContent = 'Please fill in both fields.'; msg.className = 'message'; return; }
+    if (newPassword !== confirmPassword) { msg.textContent = 'Passwords do not match. Please try again.'; msg.className = 'message'; return; }
+    if (newPassword.length < 6) { msg.textContent = 'Password must be at least 6 characters.'; msg.className = 'message'; return; }
     msg.textContent = 'Updating your password...';
     msg.className = 'message';
-
     const { error } = await sb.auth.updateUser({ password: newPassword });
-
-    if (error) {
-      msg.textContent = error.message;
-      msg.className = 'message';
-    } else {
-      show('reset-success-state');
-    }
+    if (error) { msg.textContent = error.message; msg.className = 'message'; }
+    else { show('reset-success-state'); }
   }
-
-  // Detect what type of redirect this is by reading the URL hash/params
   async function detectAndRoute() {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.replace('#', '?'));
     const type = params.get('type');
     const accessToken = params.get('access_token');
     const errorCode = params.get('error_code');
-
-    // Handle error in URL
-    if (errorCode) {
-      show('error-state');
-      return;
-    }
-
-    // If we have a token, set the session
+    if (errorCode) { show('error-state'); return; }
     if (accessToken) {
       const refreshToken = params.get('refresh_token');
       await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-
-      if (type === 'recovery') {
-        // Password reset flow
-        show('reset-state');
-      } else if (type === 'signup' || type === 'email_change' || type === 'magiclink') {
-        // Email confirmation flow
-        show('confirmed-state');
-      } else {
-        // Unknown type but has token — show confirmed as safe default
-        show('confirmed-state');
-      }
-    } else {
-      // No token — just a direct visit or something unexpected
-      show('error-state');
-    }
+      if (type === 'recovery') { show('reset-state'); }
+      else if (type === 'signup' || type === 'email_change' || type === 'magiclink') { show('confirmed-state'); }
+      else { show('confirmed-state'); }
+    } else { show('error-state'); }
   }
-
   detectAndRoute();
 </script>
 </body>
