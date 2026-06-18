@@ -22,7 +22,7 @@
   .auth-btn { background: #1f3d3a; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
   .auth-btn:hover { background: #2d5550; }
   .auth-message { text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; color: #c0392b; }
-  .auth-message.success { color: #1f3d3a; }
+  .auth-message.success { color: #1f3d3a; font-size: 15px; background: #e8f0ef; border-radius: 10px; padding: 14px 16px; margin-top: 12px; line-height: 1.6; border-left: 4px solid #1f3d3a; text-align: left; }
 
   #checklist-screen { display: none; padding: 24px; }
   .checklist-header { display: flex; justify-content: space-between; align-items: center; max-width: 850px; margin: 0 auto 16px; font-size: 13px; color: #666; }
@@ -130,7 +130,7 @@
     msg.className = 'auth-message';
     const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if (error) { msg.textContent = error.message; }
-    else { msg.className = 'auth-message success'; msg.textContent = 'Account created! Check your email to confirm, then sign in.'; }
+    else { msg.className = 'auth-message success'; msg.textContent = '🎉 Welcome to SOAR! Your account has been created successfully. Click the Sign In tab above and enter your email and password to access your checklist. Lets get started!'; }
   }
 
   async function signIn() {
